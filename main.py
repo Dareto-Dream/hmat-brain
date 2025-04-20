@@ -16,6 +16,9 @@ def run_main():
         if action == "SKETCH":
             from apps.sketch import launch_sketch
             launch_sketch(state)
+        elif action == "SPOTIFY":
+            from apps.spotify import launch_spotify_app
+            launch_spotify_app()
         elif action == "EXIT":
             sys.exit()
 

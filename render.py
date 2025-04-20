@@ -51,8 +51,9 @@ def render_main_screen(state):
     threading.Thread(target=update_spotify_status, daemon=True).start()
 
     planets = [
-        {"label": "Sketch", "angle": -45, "action": "SKETCH"},
-        {"label": "Exit", "angle": 45, "action": "EXIT"},
+        {"label": "Sketch", "angle": -60, "action": "SKETCH"},
+        {"label": "Spotify", "angle": 0, "action": "SPOTIFY"},
+        {"label": "Exit", "angle": 60, "action": "EXIT"},
     ]
 
     def get_planet_pos(angle_deg):

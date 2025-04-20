@@ -45,9 +45,9 @@ def launch_spotify_app():
         screen.fill(BG_COLOR)
         mouse_pos = pygame.mouse.get_pos()
 
-        playback = sp.current_playback()
-        repeat_state = playback["repeat_state"] if playback else "off"
-        shuffle_state = playback["shuffle_state"] if playback else False
+        playback = sp.current_playback() or {}
+        repeat_state = playback.get("repeat_state", "off")
+        shuffle_state = playback.get("shuffle_state", False)
 
         if is_playing():
             track_info = sp.currently_playing()
@@ -65,8 +65,12 @@ def launch_spotify_app():
             status = font.render("Not Playing", True, TEXT_COLOR)
             screen.blit(status, status.get_rect(center=(WIDTH//2, 120)))
 
+        # === Back Button ===
+        back_rect = pygame.Rect(20, 20, 40, 40)
+        draw_button(back_rect, "<")
+
         # === Control Buttons ===
-        buttons = []
+        buttons = [(back_rect, None)]
         labels = ["|<<", "||" if is_playing() else ">", ">>|"]
         actions = [previous_track, pause_playback if is_playing() else resume_playback, skip_track]
 
@@ -108,17 +112,17 @@ def launch_spotify_app():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 for rect, action in buttons:
                     if rect.collidepoint(mouse_pos):
-                        action()
-                # Volume
+                        if rect == back_rect:
+                            return
+                        elif action:
+                            action()
                 if pygame.Rect(250, 350, 300, 10).collidepoint(mouse_pos):
                     volume = max(0, min(100, int((mouse_pos[0] - 250) / 3)))
                     set_volume(volume)
-                # Seek
                 if pygame.Rect(seek_x, 270, seek_width, 10).collidepoint(mouse_pos):
                     new_percent = (mouse_pos[0] - seek_x) / seek_width
                     new_position = int(new_percent * duration_ms)
                     sp.seek_track(new_position)
-                # Repeat toggle
                 if repeat_rect.collidepoint(mouse_pos):
                     next_state = {
                         "off": "context",
@@ -126,7 +130,6 @@ def launch_spotify_app():
                         "track": "off"
                     }[repeat_state]
                     sp.repeat(next_state)
-                # Shuffle toggle
                 if shuffle_rect.collidepoint(mouse_pos):
                     sp.shuffle(not shuffle_state)
 
