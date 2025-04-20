@@ -3,8 +3,7 @@ import math
 import datetime
 import threading
 import time
-from tools.spotify_api import current_song_string, is_playing
-
+from tools.spotify_api import current_song_string, is_playing, pause_playback, resume_playback, skip_track, previous_track
 
 def render_main_screen(state):
     WIDTH, HEIGHT = 800, 600
@@ -28,22 +27,26 @@ def render_main_screen(state):
 
     state["spotify_display"] = ""
     state["spotify_artist"] = ""
+    state["is_playing"] = False
+
+    control_buttons = []
 
     def update_spotify_status():
-        delay = 30
         while True:
-            if is_playing():
+            playing = is_playing()
+            state["is_playing"] = playing
+
+            if playing:
                 info = current_song_string()
                 if info and "–" in info:
                     song, artist = info.split("–", 1)
                     state["spotify_display"] = song.strip()
                     state["spotify_artist"] = artist.strip()
-                delay = 5
             else:
                 state["spotify_display"] = ""
                 state["spotify_artist"] = ""
-                delay = 30
-            time.sleep(delay)
+
+            time.sleep(5 if playing else 30)
 
     threading.Thread(target=update_spotify_status, daemon=True).start()
 
@@ -71,8 +74,23 @@ def render_main_screen(state):
         if state.get("spotify_display"):
             song_label = big_font.render(state["spotify_display"], True, TEXT_COLOR)
             artist_label = font.render(state["spotify_artist"], True, TEXT_COLOR)
-            screen.blit(song_label, song_label.get_rect(center=(CENTER[0], CENTER[1] - 20)))
-            screen.blit(artist_label, artist_label.get_rect(center=(CENTER[0], CENTER[1] + 20)))
+            screen.blit(song_label, song_label.get_rect(center=(CENTER[0], CENTER[1] - 30)))
+            screen.blit(artist_label, artist_label.get_rect(center=(CENTER[0], CENTER[1])))
+
+            # Music controls
+            control_labels = ["|<<", "||", ">>|"]
+            control_actions = [previous_track, pause_playback, skip_track]
+            control_buttons.clear()
+
+            for i, (icon, action) in enumerate(zip(control_labels, control_actions)):
+                pos_x = CENTER[0] - 80 + i * 80
+                pos_y = CENTER[1] + 50
+                rect = pygame.Rect(pos_x - 20, pos_y - 20, 40, 40)
+                pygame.draw.circle(screen, CIRCLE_COLOR, (pos_x, pos_y), 20)
+                pygame.draw.circle(screen, OUTLINE_COLOR, (pos_x, pos_y), 20, width=2)
+                label = small_font.render(icon, True, TEXT_COLOR)
+                screen.blit(label, label.get_rect(center=(pos_x, pos_y)))
+                control_buttons.append((rect, action))
         else:
             now = datetime.datetime.now()
             time_text = now.strftime("%H:%M:%S")
@@ -99,6 +117,9 @@ def render_main_screen(state):
                     pos = planet["pos"]
                     if math.hypot(mouse_pos[0] - pos[0], mouse_pos[1] - pos[1]) < PLANET_RADIUS:
                         return planet["action"]
+                for rect, action in control_buttons:
+                    if rect.collidepoint(mouse_pos):
+                        action()
 
         pygame.display.flip()
         clock.tick(60)

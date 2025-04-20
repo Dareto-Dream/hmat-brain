@@ -40,7 +40,11 @@ def previous_track():
     sp.previous_track()
 
 def set_volume(percent: int):
-    sp.volume(percent)
+    try:
+        sp.volume(percent)
+    except Exception as e:
+        print(f"[!] Volume control failed: {e}")
+
 
 def play_uri(uri: str):
     sp.start_playback(uris=[uri])
