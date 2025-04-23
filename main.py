@@ -25,6 +25,9 @@ def run_main():
             subprocess.run(["git", "pull"])
             python = sys.executable
             os.execv(python, [python, "main.py"])
+        elif action == "CALCULATOR":
+            from apps.calculator import launch_calculator_app
+            launch_calculator_app()
         elif action == "EXIT":
             sys.exit()
 
