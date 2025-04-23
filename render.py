@@ -3,7 +3,9 @@ import math
 import datetime
 import threading
 import time
-from tools.spotify_api import current_song_string, is_playing, pause_playback, resume_playback, skip_track, previous_track
+from tools.spotify_api import current_song_string, is_playing, pause_playback, resume_playback, skip_track, \
+    previous_track, get_current_track_id, is_song_liked, unlike_current_song, like_current_song
+
 
 def render_main_screen(state):
     WIDTH, HEIGHT = 800, 600
@@ -83,6 +85,16 @@ def render_main_screen(state):
             control_actions = [previous_track, pause_playback, skip_track]
             control_buttons.clear()
 
+            # like controls
+            track_id = get_current_track_id()
+            liked = is_song_liked(track_id)
+            like_symbol = "♥" if liked else "+"
+            like_label = small_font.render(like_symbol, True, TEXT_COLOR)
+            like_rect = like_label.get_rect(center=(CENTER[0], CENTER[1] + 90))
+            screen.blit(like_label, like_rect)
+            state["like_rect"] = like_rect
+            state["track_id"] = track_id
+
             for i, (icon, action) in enumerate(zip(control_labels, control_actions)):
                 pos_x = CENTER[0] - 80 + i * 80
                 pos_y = CENTER[1] + 50
@@ -94,7 +106,7 @@ def render_main_screen(state):
                 control_buttons.append((rect, action))
         else:
             now = datetime.datetime.now()
-            time_text = now.strftime("%H:%M:%S")
+            time_text = now.strftime("%I:%M:%S %p").lstrip("0")
             time_label = big_font.render(time_text, True, TEXT_COLOR)
             screen.blit(time_label, time_label.get_rect(center=CENTER))
 
@@ -121,6 +133,12 @@ def render_main_screen(state):
                 for rect, action in control_buttons:
                     if rect.collidepoint(mouse_pos):
                         action()
+                if state.get("like_rect") and state.get("track_id"):
+                    if state["like_rect"].collidepoint(mouse_pos):
+                        if is_song_liked(state["track_id"]):
+                            unlike_current_song(state["track_id"])
+                        else:
+                            like_current_song()
 
         pygame.display.flip()
         clock.tick(60)

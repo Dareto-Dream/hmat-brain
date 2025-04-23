@@ -3,16 +3,8 @@
 import pygame
 import sys
 import time
-from tools.spotify_api import (
-    current_song_string,
-    is_playing,
-    pause_playback,
-    resume_playback,
-    skip_track,
-    previous_track,
-    set_volume,
-    sp
-)
+from tools.spotify_api import *
+
 
 WIDTH, HEIGHT = 800, 600
 BG_COLOR = (10, 10, 10)
@@ -40,20 +32,49 @@ def launch_spotify_app():
     volume = 50  # default volume
     position_ms = 0
     duration_ms = 1
+    track_id = None
+    like_rect = pygame.Rect(0, 0, 0, 0)
+    last_poll_time = 0
+    poll_interval = 5  # seconds
+    last_liked_check = 0
+    liked_check_interval = 10  # seconds
+    title = ""
+    artist = ""
+    duration_ms = ""
+    position_ms = ""
+    repeat_state = ""
+    shuffle_state = ""
+    track_id = ""
+    liked = ""
+    playing = ""
 
     while True:
         screen.fill(BG_COLOR)
         mouse_pos = pygame.mouse.get_pos()
 
-        playback = sp.current_playback() or {}
-        repeat_state = playback.get("repeat_state", "off")
-        shuffle_state = playback.get("shuffle_state", False)
+        include_liked = time.time() - last_liked_check > liked_check_interval
 
-        if is_playing():
+        if time.time() - last_poll_time >= poll_interval:
+            playback_data = get_playback_bundle(include_liked=include_liked)
+            last_poll_time = time.time()
+            if include_liked:
+                last_liked_check = time.time()
+
+        if playback_data:
+            title = playback_data["title"]
+            artist = playback_data["artist"]
+            duration_ms = playback_data["duration_ms"]
+            position_ms = playback_data["position_ms"]
+            repeat_state = playback_data["repeat_state"]
+            shuffle_state = playback_data["shuffle_state"]
+            track_id = playback_data["track_id"]
+            liked = playback_data["liked"]
+            playing = playback_data["is_playing"]
+
+
+        if playing:
             track_info = sp.currently_playing()
             if track_info and track_info["item"]:
-                title = track_info["item"]["name"]
-                artist = ", ".join([a["name"] for a in track_info["item"]["artists"]])
                 duration_ms = track_info["item"]["duration_ms"]
                 position_ms = track_info["progress_ms"]
 
@@ -61,6 +82,12 @@ def launch_spotify_app():
                 artist_label = small_font.render(artist.strip(), True, TEXT_COLOR)
                 screen.blit(title_label, title_label.get_rect(center=(WIDTH//2, 100)))
                 screen.blit(artist_label, artist_label.get_rect(center=(WIDTH//2, 140)))
+                track_id = get_current_track_id()
+                liked = is_song_liked(track_id)
+                like_symbol = "♥" if liked else "+"
+                like_label = small_font.render(like_symbol, True, TEXT_COLOR)
+                like_rect = like_label.get_rect(center=(WIDTH // 2, HEIGHT - 150))
+                screen.blit(like_label, like_rect)
         else:
             status = font.render("Not Playing", True, TEXT_COLOR)
             screen.blit(status, status.get_rect(center=(WIDTH//2, 120)))
@@ -132,6 +159,11 @@ def launch_spotify_app():
                     sp.repeat(next_state)
                 if shuffle_rect.collidepoint(mouse_pos):
                     sp.shuffle(not shuffle_state)
+                if like_rect.collidepoint(mouse_pos):
+                    if liked:
+                        unlike_current_song(track_id)
+                    else:
+                        like_current_song()
 
         pygame.display.flip()
         clock.tick(1)
