@@ -19,6 +19,12 @@ def run_main():
         elif action == "SPOTIFY":
             from apps.spotify import launch_spotify_app
             launch_spotify_app()
+        elif action == "REFRESH":
+            import subprocess
+            import os
+            subprocess.run(["git", "pull"])
+            python = sys.executable
+            os.execv(python, [python, "main.py"])
         elif action == "EXIT":
             sys.exit()
 

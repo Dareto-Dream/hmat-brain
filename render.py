@@ -55,6 +55,7 @@ def render_main_screen(state):
     planets = [
         {"label": "Sketch", "angle": -60, "action": "SKETCH"},
         {"label": "Spotify", "angle": 0, "action": "SPOTIFY"},
+        {"label": "Refresh", "angle": 120, "action": "REFRESH"},
         {"label": "Exit", "angle": 60, "action": "EXIT"},
     ]
 
