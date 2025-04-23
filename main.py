@@ -28,6 +28,9 @@ def run_main():
         elif action == "CALCULATOR":
             from apps.calculator import launch_calculator_app
             launch_calculator_app()
+        elif action == "PCB":
+            from apps.pcb_maker import launch_pcb_maker
+            launch_pcb_maker()
         elif action == "EXIT":
             sys.exit()
 
