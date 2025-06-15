@@ -57,6 +57,7 @@ def render_main_screen(state):
         {"label": "Spotify", "angle": 0, "action": "SPOTIFY"},
         {"label": "Calculator", "angle": 180, "action": "CALCULATOR"},
         {"label": "PCB", "angle": -120, "action": "PCB"},
+        {"label": "Supply", "angle": -150, "action": "SUPPLY"},
         {"label": "Refresh", "angle": 120, "action": "REFRESH"},
         {"label": "Exit", "angle": 60, "action": "EXIT"},
     ]

@@ -31,6 +31,9 @@ def run_main():
         elif action == "PCB":
             from apps.pcb_maker import launch_pcb_maker
             launch_pcb_maker()
+        elif action == "SUPPLY":
+            from apps.supplier import launch_supplier_app
+            launch_supplier_app()
         elif action == "EXIT":
             sys.exit()
 
